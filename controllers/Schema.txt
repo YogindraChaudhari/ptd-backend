@@ -1,0 +1,84 @@
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    phone_number VARCHAR(15) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    zone INT NOT NULL CHECK (zone BETWEEN 1 AND 50),
+    vibhaag VARCHAR(50) NOT NULL,
+    password TEXT NOT NULL
+);
+
+ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'normal-user';
+
+
+CREATE TABLE plants (
+    id SERIAL PRIMARY KEY,
+    plant_name VARCHAR(100) NOT NULL,
+    plant_number VARCHAR(20) NOT NULL,
+    zone INT NOT NULL CHECK (zone BETWEEN 1 AND 50),
+    height FLOAT NOT NULL,
+    planted_on DATE NOT NULL,
+    latitude FLOAT NOT NULL,
+    longitude FLOAT NOT NULL,
+    plant_image TEXT,
+    health_status VARCHAR(10) CHECK (health_status IN ('Good', 'Deceased', 'Infected')) NOT NULL,
+    water_schedule VARCHAR(20) CHECK (water_schedule IN ('Daily', 'Alternate days', 'Weekly', 'Monthly')) NOT NULL,
+    insects_present BOOLEAN DEFAULT FALSE,
+    fertilizers_applied BOOLEAN DEFAULT FALSE,
+    soil_level_maintained BOOLEAN DEFAULT FALSE,
+    tree_burnt BOOLEAN DEFAULT FALSE,
+    unwanted_grass BOOLEAN DEFAULT FALSE,
+    water_logging BOOLEAN DEFAULT FALSE,
+    compound_maintained BOOLEAN DEFAULT FALSE,
+    registered_by INT REFERENCES users(id) ON DELETE CASCADE,
+    registered_by_full_name VARCHAR(100) NOT NULL,
+    registered_by_zone INT NOT NULL,
+    registered_by_vibhaag VARCHAR(50) NOT NULL
+);
+
+
+
+ALTER TABLE plants ADD COLUMN upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP; 
+
+# ALTER TABLE plants ADD COLUMN field_comments JSONB DEFAULT '{}';
+
+
+//ALTER TABLE plants ADD COLUMN comments TEXT;//
+
+ALTER TABLE plants
+ADD COLUMN updated_by_full_name VARCHAR(100),
+ADD COLUMN updated_by_zone INT,
+ADD COLUMN updated_by_vibhaag VARCHAR(50);
+
+
+
+CREATE TABLE attendance (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    full_name VARCHAR(100) NOT NULL,
+    phone_number VARCHAR(15) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    zone INT NOT NULL,
+    vibhaag VARCHAR(50) NOT NULL,
+    attendance_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    attendance_time TIME NOT NULL DEFAULT CURRENT_TIME,
+    work_types TEXT[] NOT NULL
+);
+
+
+CREATE TABLE attendance (
+    id SERIAL PRIMARY KEY,
+    date DATE NOT NULL,
+    user_id VARCHAR(50) NOT NULL,
+    full_name VARCHAR(100),
+    phone_number VARCHAR(15),
+    email VARCHAR(100),
+    zone VARCHAR(50),
+    vibhaag VARCHAR(50),
+    work_types TEXT[],
+    timestamp TIMESTAMP DEFAULT NOW()
+);
+
+-- Optional: Create an index on date for faster retrieval
+CREATE INDEX idx_date ON attendance (date);
+
