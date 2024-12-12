@@ -1,0 +1,19 @@
+CREATE TABLE plants (
+    id SERIAL PRIMARY KEY,
+    plant_name VARCHAR(100) NOT NULL,
+    plant_number VARCHAR(20) NOT NULL,
+    plant_zone INT NOT NULL CHECK (zone BETWEEN 1 AND 50),
+    height FLOAT NOT NULL,
+    planted_on DATE NOT NULL,
+    latitude FLOAT NOT NULL,
+    longitude FLOAT NOT NULL,
+    plant_image TEXT,
+    health_status VARCHAR(10) CHECK (health_status IN ('Good', 'Infected')) NOT NULL,
+    registered_by INT REFERENCES users(id) ON DELETE CASCADE,
+    registered_by_full_name VARCHAR(100) NOT NULL,
+    registered_by_zone INT NOT NULL,
+    registered_by_vibhaag VARCHAR(50) NOT NULL
+);
+
+
+ALTER TABLE plants ADD COLUMN upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP; 
