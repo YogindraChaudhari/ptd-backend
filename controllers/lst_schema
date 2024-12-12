@@ -1,0 +1,73 @@
+-- Step 1: Create the plants table with general information
+CREATE TABLE plants (
+    id SERIAL PRIMARY KEY,
+    plant_name VARCHAR(100) NOT NULL,
+    plant_number VARCHAR(20) NOT NULL,
+    plant_zone INT NOT NULL CHECK (plant_zone BETWEEN 1 AND 50),
+    height FLOAT NOT NULL,
+    planted_on DATE NOT NULL,
+    latitude FLOAT NOT NULL,
+    longitude FLOAT NOT NULL,
+    plant_image TEXT,
+    health_status VARCHAR(10) CHECK (health_status IN ('Good','Infected')) DEFAULT 'Good',
+    registered_by INT REFERENCES users(id) ON DELETE CASCADE,
+    registered_by_full_name VARCHAR(100) NOT NULL,
+    registered_by_zone INT NOT NULL,
+    registered_by_vibhaag VARCHAR(50) NOT NULL
+);
+
+-- Step 2: Create the questionnaires table for health-related details
+CREATE TABLE questionnaires (
+    id SERIAL PRIMARY KEY,
+    plant_id INT REFERENCES plants(id) ON DELETE CASCADE,
+    water_schedule VARCHAR(20) CHECK (water_schedule IN ('Daily', 'Alternate days', 'Weekly', 'Monthly')) NOT NULL,
+    insects_present BOOLEAN DEFAULT FALSE,
+    fertilizers_applied BOOLEAN DEFAULT FALSE,
+    soil_level_maintained BOOLEAN DEFAULT FALSE,
+    tree_burnt BOOLEAN DEFAULT FALSE,
+    unwanted_grass BOOLEAN DEFAULT FALSE,
+    water_logging BOOLEAN DEFAULT FALSE,
+    compound_maintained BOOLEAN DEFAULT FALSE,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Step 3: Create a function to update health_status in the plants table
+CREATE OR REPLACE FUNCTION update_health_status()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Logic to determine the health_status
+    IF NEW.tree_burnt = TRUE OR NEW.water_logging = TRUE OR NEW.unwanted_grass = TRUE OR NEW.insects_present = TRUE THEN
+        UPDATE plants
+        SET health_status = 'Infected'
+        WHERE id = NEW.plant_id;
+    ELSE
+        UPDATE plants
+        SET health_status = 'Good'
+        WHERE id = NEW.plant_id;
+    END IF;
+
+    -- Update the last_updated field
+    NEW.last_updated = CURRENT_TIMESTAMP;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Step 4: Create a trigger to invoke the function on INSERT or UPDATE
+CREATE TRIGGER questionnaires_health_trigger
+AFTER INSERT OR UPDATE ON questionnaires
+FOR EACH ROW
+EXECUTE FUNCTION update_health_status();
+
+ALTER TABLE plants ADD COLUMN updated_by INT REFERENCES users(id) ON DELETE CASCADE,
+ADD COLUMN updated_by_full_name VARCHAR(100),
+ADD COLUMN updated_by_zone INT,
+ADD COLUMN updated_by_vibhaag VARCHAR(50),
+ADD COLUMN updated_by_role VARCHAR(50);
+
+
+ALTER TABLE plants
+ALTER COLUMN updated_by_full_name SET DEFAULT '',
+ALTER COLUMN updated_by_zone SET DEFAULT 0,
+ALTER COLUMN updated_by_vibhaag SET DEFAULT '',
+ALTER COLUMN updated_by_role SET DEFAULT '';
